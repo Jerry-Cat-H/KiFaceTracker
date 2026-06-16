@@ -26,7 +26,7 @@ void setup() {
   digitalWrite(RELAY_PIN, HIGH); // Active-LOW relay: HIGH = off
 
   delay(500);
-  Serial.println("Arduino Face Tracker Ready");
+  Serial.println("Arduino Face Tracker Ready [FIRMWARE v9]");
 }
 
 void loop() {
