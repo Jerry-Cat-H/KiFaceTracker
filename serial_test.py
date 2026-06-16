@@ -13,6 +13,7 @@ print("Connected. Sending fixed command 'P90T90R0' twice per second.\n")
 buf = ""
 count = 0
 last_send = 0.0
+relay = 0
 
 while True:
     # --- 讀取 Arduino 回傳 ---
@@ -25,10 +26,12 @@ while True:
             if line:
                 print(f"    [Arduino] {line}")
 
-    # --- 每 0.5 秒送一次固定指令 (繼電器固定關，不切換) ---
+    # --- 每 1 秒送一次，繼電器慢速開/關交替 ---
     now = time.time()
-    if now - last_send >= 0.5:
-        ser.write(b"P90T90R0\n")
+    if now - last_send >= 1.0:
+        relay = 1 - relay  # 0 -> 1 -> 0 交替
+        msg = f"P90T90R{relay}\n"
+        ser.write(msg.encode())
         last_send = now
         count += 1
-        print(f"--> sent #{count}: P90T90R0")
+        print(f"--> sent #{count}: {msg.strip()}  (繼電器應該每秒喀一聲)")
