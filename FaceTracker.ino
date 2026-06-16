@@ -14,7 +14,8 @@ int relayState = 0;
 
 void setup() {
   Serial.begin(115200);
-  
+  Serial.setTimeout(50);
+
   // 等待 Python 連線 (Leonardo 等原生 USB 晶片必備)
   while (!Serial) {
     ; // wait for serial port to connect.
