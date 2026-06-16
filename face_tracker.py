@@ -40,12 +40,19 @@ tilt_angle = 90
 SMOOTHING = 0.2
 
 def arduino_reader(ser):
+    buf = ""
     while True:
         try:
-            line = ser.readline().decode('utf-8', errors='ignore').strip()
-            if line:
-                print(f"[Arduino] {line}")
-        except:
+            data = ser.read(ser.in_waiting or 1)
+            if data:
+                buf += data.decode('utf-8', errors='ignore')
+                while '\n' in buf:
+                    line, buf = buf.split('\n', 1)
+                    line = line.strip()
+                    if line:
+                        print(f"[Arduino] {line}")
+        except Exception as e:
+            print(f"[Arduino reader error] {e}")
             break
 
 if arduino:
