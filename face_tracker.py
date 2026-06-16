@@ -2,6 +2,7 @@ import cv2
 import serial
 import time
 import sys
+import threading
   
 # --- Configuration ---
 SERIAL_PORT =  '/dev/cu.usbmodemFX2348N1'   # Change this to your Arduino's COM port!
@@ -38,8 +39,19 @@ tilt_angle = 90
 # Tuning parameters for smoothing movement
 SMOOTHING = 0.2
 
+def arduino_reader(ser):
+    while True:
+        try:
+            line = ser.readline().decode('utf-8', errors='ignore').strip()
+            if line:
+                print(f"[Arduino] {line}")
+        except:
+            break
+
+if arduino:
+    threading.Thread(target=arduino_reader, args=(arduino,), daemon=True).start()
+
 def map_value(value, in_min, in_max, out_min, out_max):
-    """Maps a value from one range to another."""
     return int((value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
 
 print("Starting face tracking...")
@@ -109,8 +121,6 @@ while cap.isOpened():
             # Format: P<pan>T<tilt>R<relay>\n
             data_string = f"P{pan_angle}T{tilt_angle}R{relay_state}\n"
             arduino.write(data_string.encode('utf-8'))
-            if arduino.in_waiting:
-                print(arduino.readline().decode('utf-8', errors='ignore').strip())
         except Exception as e:
             print(f"Serial write error: {e}")
             arduino = None # Stop trying to write if disconnected
