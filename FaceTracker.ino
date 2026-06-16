@@ -16,69 +16,47 @@ void setup() {
   Serial.begin(115200);
   Serial.setTimeout(50);
 
-  // 等待 Python 連線 (Leonardo 等原生 USB 晶片必備)
   while (!Serial) {
-    ; // wait for serial port to connect.
+    ;
   }
-  
-  // Attach servos
+
   panServo.attach(PAN_PIN);
   tiltServo.attach(TILT_PIN);
-  
-  // Set initial positions
+
   panServo.write(panAngle);
   tiltServo.write(tiltAngle);
-  
-  // Setup relay
+
   pinMode(RELAY_PIN, OUTPUT);
-  digitalWrite(RELAY_PIN, LOW); // Assume LOW is off. Change to HIGH if your relay is active-low
-  
-  // Wait a moment for servos to reach initial position
+  digitalWrite(RELAY_PIN, HIGH); // Active-LOW relay: HIGH = off
+
   delay(500);
   Serial.println("Arduino Face Tracker Ready");
 }
 
 void loop() {
-  // Check if data is available to read
   if (Serial.available() > 0) {
-    // Read the incoming string until newline character '\n'
-    String data = Serial.readStringUntil('\n');
-    
-    // Expected format: P<pan>T<tilt>R<relay>
-    // Example: P120T45R1
-    
-    if (data.startsWith("P")) {
-      // Find the positions of 'T' and 'R' to parse the string
-      int tIndex = data.indexOf('T');
-      int rIndex = data.indexOf('R');
-      
-      if (tIndex != -1 && rIndex != -1) {
-        // Extract the substrings and convert to integers
-        String panStr = data.substring(1, tIndex);
-        String tiltStr = data.substring(tIndex + 1, rIndex);
-        String relayStr = data.substring(rIndex + 1);
-        
-        panAngle = panStr.toInt();
-        tiltAngle = tiltStr.toInt();
-        relayState = relayStr.toInt();
-        
-        // Constrain angles to safe ranges (0-180)
-        panAngle = constrain(panAngle, 0, 180);
-        tiltAngle = constrain(tiltAngle, 0, 180);
+    char buf[32];
+    int len = Serial.readBytesUntil('\n', buf, sizeof(buf) - 1);
+    buf[len] = '\0';
 
-        Serial.println("OK P" + String(panAngle) + " T" + String(tiltAngle) + " R" + String(relayState));
+    int p = -1, t = -1, r = -1;
+    if (sscanf(buf, "P%dT%dR%d", &p, &t, &r) == 3) {
+      panAngle   = constrain(p, 0, 180);
+      tiltAngle  = constrain(t, 0, 180);
+      relayState = r;
 
-        // Update servos
-        panServo.write(panAngle);
-        tiltServo.write(tiltAngle);
-        
-        // Update relay
-        if (relayState == 1) {
-          digitalWrite(RELAY_PIN, HIGH);
-        } else {
-          digitalWrite(RELAY_PIN, LOW);
-        }
-      }
+      panServo.write(panAngle);
+      tiltServo.write(tiltAngle);
+
+      // Active-LOW relay: LOW = on, HIGH = off
+      digitalWrite(RELAY_PIN, relayState == 1 ? LOW : HIGH);
+
+      Serial.print("OK P");
+      Serial.print(panAngle);
+      Serial.print(" T");
+      Serial.print(tiltAngle);
+      Serial.print(" R");
+      Serial.println(relayState);
     }
   }
 }
