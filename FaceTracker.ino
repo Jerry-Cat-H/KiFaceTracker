@@ -64,7 +64,9 @@ void loop() {
         // Constrain angles to safe ranges (0-180)
         panAngle = constrain(panAngle, 0, 180);
         tiltAngle = constrain(tiltAngle, 0, 180);
-        
+
+        Serial.println("OK P" + String(panAngle) + " T" + String(tiltAngle) + " R" + String(relayState));
+
         // Update servos
         panServo.write(panAngle);
         tiltServo.write(tiltAngle);

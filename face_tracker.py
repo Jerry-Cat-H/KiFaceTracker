@@ -109,6 +109,8 @@ while cap.isOpened():
             # Format: P<pan>T<tilt>R<relay>\n
             data_string = f"P{pan_angle}T{tilt_angle}R{relay_state}\n"
             arduino.write(data_string.encode('utf-8'))
+            if arduino.in_waiting:
+                print(arduino.readline().decode('utf-8', errors='ignore').strip())
         except Exception as e:
             print(f"Serial write error: {e}")
             arduino = None # Stop trying to write if disconnected
