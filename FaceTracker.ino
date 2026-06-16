@@ -16,10 +16,6 @@ void setup() {
   Serial.begin(115200);
   Serial.setTimeout(50);
 
-  while (!Serial) {
-    ;
-  }
-
   panServo.attach(PAN_PIN);
   tiltServo.attach(TILT_PIN);
 
